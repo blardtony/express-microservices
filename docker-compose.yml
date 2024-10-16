@@ -1,0 +1,58 @@
+services:
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: ../Dockerfile
+    container_name: api-gateway
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./api-gateway:/app
+    restart: always
+    networks:
+      - api-network
+    environment:
+      - USER_SERVICE_URL=http://user-service:3001
+  user-db:
+    image: mysql:8.0
+    restart: always
+    ports:
+      - "3406:3306"
+    volumes:
+      - user-db-data:/var/lib/mysql
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      MYSQL_DATABASE: user-service
+    healthcheck:
+      test: ["CMD-SHELL", "mysql -u root user-service"]
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - user-network
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: ../Dockerfile
+    container_name: user-service
+    depends_on:
+      user-db:
+        condition: service_healthy
+        restart: true
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./user-service:/app
+    restart: always
+    networks:
+      - user-network
+      - api-network
+
+networks:
+  api-network:
+    name: api-network
+  user-network:
+
+volumes:
+  user-db-data:
