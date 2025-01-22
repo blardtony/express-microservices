@@ -8,6 +8,8 @@ services:
       - "3000:3000"
     volumes:
       - ./api-gateway:/app
+      # Added anonymous volume for node_modules to prevent it from being overridden by the host mount
+      - /app/node_modules
     restart: always
     networks:
       - api-network
@@ -44,6 +46,8 @@ services:
       - "3001:3001"
     volumes:
       - ./user-service:/app
+      # Added anonymous volume for node_modules to prevent it from being overridden by the host mount
+      - /app/node_modules
     restart: always
     networks:
       - user-network
